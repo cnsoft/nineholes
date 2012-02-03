@@ -1,5 +1,8 @@
-This file is for you to describe the nineholes application. Typically
-you would include information such as the information below:
+NineHoles - Your Local VimGolf Challenge Leaderboard
+
+Abstract
+======================
+NineHoles is designed for groups to have their own VimGolf 'league' leaderboard. It can also import offical VimGolf challenges.
 
 Installation and Setup
 ======================
