@@ -10,12 +10,14 @@ from sqlalchemy.types import Integer, Unicode, String
 from nineholes.model import DeclarativeBase, metadata, DBSession
 from uuid import uuid4
 
+proper_uuid = lambda: str(uuid4()).replace('-','')
+
 class Challenge(DeclarativeBase):
     __tablename__ = 'challenges'
     
     #{ Columns
     
-    id = Column(String(36), primary_key=True, default=(lambda:str(uuid4())))
+    id = Column(String(36), primary_key=True, default=proper_uuid)
     
     title = Column(Unicode(255), nullable=False)
 
@@ -24,10 +26,10 @@ class Challenge(DeclarativeBase):
     # If set then this is probably an imported key
     challenge_key = Column(String(36), default=None, nullable=True)
     
-    start_file = Column(Unicode, nullable=True)
-    final_file = Column(Unicode, nullable=True)
+    start_file = Column(String, nullable=True)
+    final_file = Column(String, nullable=True)
 
-    vimrc = Column(Unicode, nullable=True)
+    vimrc = Column(String, nullable=True)
     #}
 
 

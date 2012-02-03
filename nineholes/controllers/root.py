@@ -11,14 +11,22 @@ from nineholes.model import Challenge, Entry, DBSession, metadata
 from nineholes.lib.base import BaseController
 from nineholes.controllers.error import ErrorController
 
+from cgi import escape as _e
+
 from urllib2 import urlopen
 import transaction
 
-from yaml import load, dump
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+from yaml import add_representer, load, dump
+from yaml import Loader, Dumper
+
+class literal_unicode(unicode): pass
+
+def literal_unicode_representer(Dumper, data):
+    return Dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+
+add_representer(literal_unicode, literal_unicode_representer)
+
+
 
 __all__ = ['RootController']
 
@@ -41,7 +49,7 @@ class RootController(BaseController):
     error = ErrorController()
 
     @expose('nineholes.templates.index')
-    def index(self):
+    def index(self, **kw):
         """Handle the front-page."""
         return dict(page='index')
 
@@ -49,6 +57,26 @@ class RootController(BaseController):
     def about(self):
         """Handle the 'about' page."""
         return dict(page='about')
+
+    @expose()
+    def challenges(self, challenge_id=None):
+        if not challenge_id: redirect("/")
+        isYaml = 'yaml' in challenge_id.split('.')[-1]
+        if isYaml:
+            challenge_id = challenge_id.split('.')[0]
+        try:
+            challenge = DBSession.query(model.Challenge).filter(model.Challenge.id==challenge_id).one()
+        except:
+            raise
+
+        if isYaml:
+            challenge_id = challenge_id.split('.')[0]
+            yaml_out = dump({'in' : {'data': literal_unicode(challenge.start_file), 'type':'txt'},
+                        'out' : {'data': literal_unicode(challenge.final_file),'type': 'txt'},
+                        'vimrc' : literal_unicode(challenge.vimrc),
+                        'client': '0.3.0'}, Dumper=Dumper)
+            return yaml_out
+            
 
     @expose('nineholes.templates.import_vimgolf')
     def import_vimgolf(self, challenge_id=None):
@@ -66,19 +94,20 @@ class RootController(BaseController):
         
         new_challenge = model.Challenge()
         new_challenge.title = "VimGolf Challenge: %s" % challenge_id
+        new_challenge.id = challenge_id
         new_challenge.start_file = file_in
         new_challenge.final_file = file_out
         new_challenge.vimrc = file_vimrc
         new_challenge.challenge_key = challenge_id
+
         DBSession.add(new_challenge)
         DBSession.flush()
 
         transaction.commit()
+
         redirect("/?challenge=%s" % challenge_id)
 
-        return dict(page="import_vimgolf", 
-            file_in=file_in, 
-            file_out=file_out)
+        return dict(page="import_vimgolf", file_in=file_in, file_out=file_out)
 
     @expose('nineholes.templates.login')
     def login(self, came_from=lurl('/')):
