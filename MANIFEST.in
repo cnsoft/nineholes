@@ -1,0 +1,4 @@
+recursive-include nineholes/public *
+include nineholes/public/favicon.ico
+recursive-include nineholes/i18n *
+recursive-include nineholes/templates *

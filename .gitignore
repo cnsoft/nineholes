@@ -1,0 +1,9 @@
+cache
+data
+build
+nineholes.egg-info
+*.pyc
+*.swp
+dist
+*.egg
+*.db
